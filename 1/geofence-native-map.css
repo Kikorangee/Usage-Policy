@@ -1,0 +1,17 @@
+*{box-sizing:border-box}
+body{margin:0;background:#f5f7fa;color:#172033;font-family:"Segoe UI",Arial,sans-serif}
+.native-map-panel{padding:20px}
+.eyebrow{margin:0 0 6px;color:#3157d5;font-size:11px;font-weight:800;letter-spacing:.12em}
+h1{margin:0 0 8px;font-size:24px}
+.intro{margin:0 0 20px;color:#657087;line-height:1.45}
+label{display:block;margin-bottom:7px;color:#465168;font-size:13px;font-weight:700}
+select,button{width:100%;min-height:42px;border-radius:7px;font:inherit}
+select{border:1px solid #cbd2de;background:#fff;padding:8px 10px;color:#172033}
+button{margin-top:10px;border:0;background:#3157d5;color:#fff;font-weight:700;cursor:pointer}
+button:disabled{background:#9aa7bd;cursor:not-allowed}
+.legend{display:flex;gap:16px;margin-top:20px;color:#465168;font-size:12px}
+.dot{display:inline-block;width:9px;height:9px;margin-right:5px;border-radius:50%}
+.compliant{background:#15803d}
+.trigger{background:#c62828}
+.status{margin:16px 0 0;padding:12px;border-left:3px solid #3157d5;background:#fff;color:#465168;line-height:1.4}
+.status.error{border-left-color:#c62828;color:#8f1d18}
