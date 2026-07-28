@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Live Geofence Monitor</title>
+  <link rel="stylesheet" href="geofence-monitor.css">
+  <style>
+    .policy-workflow{display:grid;gap:20px;margin-top:20px}
+    .policy-step{display:grid;grid-template-columns:40px minmax(0,1fr);gap:14px;align-items:start}
+    .policy-step-number{display:grid;place-items:center;width:32px;height:32px;border-radius:50%;background:#e9effb;color:#1f4c9a;font-weight:700}
+    .policy-step-content>label,.policy-step-title{display:block;margin-bottom:8px;font-weight:700}
+    .policy-step-content input[type="text"],.policy-step-content select{width:100%}
+    .rule-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+    .rule-option{position:relative;display:block;padding:14px;border:1px solid #ccd5e3;border-radius:8px;background:#fff;cursor:pointer}
+    .rule-option:has(input:checked){border-color:#1f5fbf;box-shadow:0 0 0 2px rgba(31,95,191,.15);background:#f5f8ff}
+    .rule-option input{position:absolute;opacity:0;pointer-events:none}
+    .rule-option strong,.rule-option span{display:block}.rule-option span{margin-top:4px;color:#5f6b7a;font-size:.875rem;line-height:1.4}
+    .schedule-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+    .time-window{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px;padding:14px;border:1px solid #d7dfeb;border-radius:8px;background:#f8fafc}
+    .time-window[hidden]{display:none}
+    .time-window-note{grid-column:1/-1;margin:0;color:#5f6b7a;font-size:.875rem}
+    .notification-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+    .notification-details{display:grid;gap:14px;margin-top:14px;padding:16px;border:1px solid #d7dfeb;border-radius:8px;background:#f8fafc}
+    .notification-details[hidden]{display:none}
+    .notification-details label>span{display:block;margin-bottom:6px;font-weight:600}
+    .notification-details input[type="email"],.notification-details input[type="url"],.notification-details input[type="number"]{width:100%}
+    .check-line{display:flex;align-items:flex-start;gap:9px}
+    .check-line input{margin-top:3px}
+    .field-note{margin:5px 0 0;color:#5f6b7a;font-size:.8125rem;line-height:1.4}
+    .notification-summary{margin:0;padding:12px;border-left:3px solid #1f5fbf;background:#fff;color:#334155;font-size:.875rem;line-height:1.45}
+    .policy-actions{display:flex;justify-content:flex-end;padding-top:4px}
+    @media(max-width:760px){.rule-options,.schedule-options,.time-window,.notification-options{grid-template-columns:1fr}.policy-step{grid-template-columns:32px minmax(0,1fr)}.time-window-note{grid-column:auto}}
+  </style>
+</head>
+<body>
+  <main id="gf-app" class="app">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">MYGEOTAB ADD-IN</p>
+        <h1>Live Geofence Monitor</h1>
+        <p class="subtitle">Current vehicle positions evaluated against your Geotab zones.</p>
+      </div>
+      <div class="connection">
+        <span id="connection-dot" class="dot"></span>
+        <span id="connection-text">Connecting…</span>
+      </div>
+    </header>
+
+    <section class="panel controls" aria-label="Monitor settings">
+      <label>
+        Vehicle group
+        <select id="group-select"><option value="">All accessible vehicles</option></select>
+      </label>
+      <label>
+        Refresh
+        <select id="interval-select">
+          <option value="15">Every 15 seconds</option>
+          <option value="30" selected>Every 30 seconds</option>
+          <option value="60">Every minute</option>
+          <option value="300">Every 5 minutes</option>
+        </select>
+      </label>
+      <div class="actions">
+        <button id="refresh-button" class="button primary" type="button">Refresh now</button>
+        <button id="monitor-button" class="button secondary" type="button">Start monitoring</button>
+      </div>
+    </section>
+
+    <div id="message" class="message" role="status" aria-live="polite"></div>
+
+    <section class="panel policy-builder" aria-labelledby="policy-heading">
+      <div class="policy-intro">
+        <p class="eyebrow">GEOTAB EXCEPTION RULE</p>
+        <h2 id="policy-heading">Create a custom geofence policy</h2>
+        <p>Select the geofence, provide a unique policy name, then define when the rule applies. The selected vehicle group controls which assets the policy covers.</p>
+      </div>
+      <div class="policy-workflow">
+        <div class="policy-step">
+          <span class="policy-step-number" aria-hidden="true">1</span>
+          <div class="policy-step-content">
+            <label for="zone-select">Select geofence</label>
+            <select id="zone-select"><option value="">Loading zones…</option></select>
+          </div>
+        </div>
+
+        <div class="policy-step">
+          <span class="policy-step-number" aria-hidden="true">2</span>
+          <div class="policy-step-content">
+            <label for="policy-name">Policy name</label>
+            <input id="policy-name" type="text" maxlength="255" autocomplete="off" placeholder="Enter a descriptive policy name">
+          </div>
+        </div>
+
+        <div class="policy-step">
+          <span class="policy-step-number" aria-hidden="true">3</span>
+          <div class="policy-step-content">
+            <span id="rule-logic-label" class="policy-step-title">Add rule logic</span>
+            <input id="policy-trigger" type="hidden" value="OutsideArea">
+            <div class="rule-options" role="radiogroup" aria-labelledby="rule-logic-label">
+              <label class="rule-option">
+                <input type="radio" name="policy-rule-logic" value="OutsideArea" checked>
+                <strong>Outside area</strong>
+                <span>Trigger when a monitored vehicle is outside the selected geofence.</span>
+              </label>
+              <label class="rule-option">
+                <input type="radio" name="policy-rule-logic" value="InsideArea">
+                <strong>Inside area</strong>
+                <span>Trigger when a monitored vehicle is inside the selected geofence.</span>
+              </label>
+              <label class="rule-option">
+                <input type="radio" name="policy-rule-logic" value="FullTimeUse">
+                <strong>Full-time use</strong>
+                <span>Apply the policy continuously, whether the vehicle is inside or outside.</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="policy-step">
+          <span class="policy-step-number" aria-hidden="true">4</span>
+          <div class="policy-step-content">
+            <span id="time-of-use-label" class="policy-step-title">Set time of use</span>
+            <input id="policy-schedule" type="hidden" value="FullTime">
+            <input id="policy-time-crosses-midnight" type="hidden" value="false">
+            <div class="schedule-options" role="radiogroup" aria-labelledby="time-of-use-label">
+              <label class="rule-option">
+                <input type="radio" name="policy-schedule-mode" value="FullTime" checked>
+                <strong>Full time</strong>
+                <span>Evaluate the selected rule at all times.</span>
+              </label>
+              <label class="rule-option">
+                <input type="radio" name="policy-schedule-mode" value="PermittedWindow">
+                <strong>Permitted time window</strong>
+                <span>Allow vehicles during specified hours and enforce the rule outside that window.</span>
+              </label>
+              <label class="rule-option">
+                <input type="radio" name="policy-schedule-mode" value="RestrictedWindow">
+                <strong>Restricted time window</strong>
+                <span>Prohibit vehicle use in the selected zone during specified hours.</span>
+              </label>
+            </div>
+            <div id="policy-time-window" class="time-window" hidden>
+              <label for="policy-start-time">
+                <span id="policy-start-time-label">Permitted from</span>
+                <input id="policy-start-time" type="time" value="16:00">
+              </label>
+              <label for="policy-end-time">
+                <span id="policy-end-time-label">Permitted until</span>
+                <input id="policy-end-time" type="time" value="09:00">
+              </label>
+              <p id="policy-time-summary" class="time-window-note">Permitted from 4:00 PM until 9:00 AM the following day.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="policy-step">
+          <span class="policy-step-number" aria-hidden="true">5</span>
+          <div class="policy-step-content">
+            <span id="notification-label" class="policy-step-title">Configure alerts and notifications</span>
+            <input id="policy-notifications-enabled" type="hidden" value="false">
+            <div class="notification-options" aria-labelledby="notification-label">
+              <label class="rule-option">
+                <input id="notify-driver" type="checkbox">
+                <strong>Notify assigned driver</strong>
+                <span>Email the driver associated with the vehicle at the time of the violation.</span>
+              </label>
+              <label class="rule-option">
+                <input id="notify-back-office" type="checkbox">
+                <strong>Notify administrator or back office</strong>
+                <span>Send the alert to one or more operational email addresses.</span>
+              </label>
+            </div>
+            <div id="notification-details" class="notification-details" hidden>
+              <label id="back-office-email-field" for="back-office-emails" hidden>
+                <span>Back-office email recipients</span>
+                <input id="back-office-emails" type="text" inputmode="email" autocomplete="off" placeholder="fleet@company.co.nz, duty.manager@company.co.nz">
+                <p class="field-note">Separate multiple addresses with commas. Driver email is taken from the assigned Geotab user.</p>
+              </label>
+              <label class="check-line">
+                <input id="include-location-link" type="checkbox" checked>
+                <span>Include the vehicle coordinates, street location and a link to the map.</span>
+              </label>
+              <label class="check-line">
+                <input id="attach-map-image" type="checkbox" checked>
+                <span>Attach a map image showing the vehicle position and selected geofence.</span>
+              </label>
+              <label for="notification-cooldown">
+                <span>Repeat-alert delay</span>
+                <select id="notification-cooldown">
+                  <option value="15">15 minutes</option>
+                  <option value="30" selected>30 minutes</option>
+                  <option value="60">1 hour</option>
+                  <option value="240">4 hours</option>
+                  <option value="0">Send every occurrence</option>
+                </select>
+              </label>
+              <label for="notification-webhook-url">
+                <span>Secure notification service URL</span>
+                <input id="notification-webhook-url" type="url" placeholder="https://notifications.example.com/geotab/geofence-alert">
+                <p class="field-note">Required for email delivery and map-image generation. Keep email and map-provider credentials on this server, never in the add-in.</p>
+              </label>
+              <p id="notification-summary" class="notification-summary">Select at least one recipient.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="policy-actions">
+          <button id="create-policy-button" class="button danger" type="button" disabled>Create policy</button>
+        </div>
+      </div>
+      <div id="policy-result" class="policy-result" role="status" aria-live="polite"></div>
+    </section>
+
+    <section class="stats" aria-label="Summary">
+      <article class="stat"><span>Vehicles with position</span><strong id="total-count">—</strong></article>
+      <article class="stat good"><span>Inside selected zone</span><strong id="inside-count">—</strong></article>
+      <article class="stat bad"><span>Outside selected zone</span><strong id="outside-count">—</strong></article>
+      <article class="stat muted-stat"><span>Position unavailable</span><strong id="missing-count">—</strong></article>
+    </section>
+
+    <section class="panel">
+      <div class="section-head">
+        <div>
+          <h2>Current compliance</h2>
+          <p id="last-updated">Waiting for live data</p>
+        </div>
+        <input id="vehicle-search" type="search" placeholder="Search vehicle…" aria-label="Search vehicles">
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Vehicle</th>
+              <th>Status</th>
+              <th>Position time</th>
+              <th>Speed</th>
+              <th>Coordinates</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="results-body">
+            <tr><td colspan="6" class="empty">Connecting to MyGeotab…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer>
+      This add-in reads the signed-in user’s permitted Geotab data. It does not contain credentials or sample fleet records.
+    </footer>
+  </main>
+  <script>
+    (function configureCustomPolicyBuilder() {
+      const zone = document.getElementById('zone-select');
+      const name = document.getElementById('policy-name');
+      const trigger = document.getElementById('policy-trigger');
+      const schedule = document.getElementById('policy-schedule');
+      const crossesMidnight = document.getElementById('policy-time-crosses-midnight');
+      const timeWindow = document.getElementById('policy-time-window');
+      const startTime = document.getElementById('policy-start-time');
+      const endTime = document.getElementById('policy-end-time');
+      const startTimeLabel = document.getElementById('policy-start-time-label');
+      const endTimeLabel = document.getElementById('policy-end-time-label');
+      const timeSummary = document.getElementById('policy-time-summary');
+      const create = document.getElementById('create-policy-button');
+      const rules = document.querySelectorAll('input[name="policy-rule-logic"]');
+      const scheduleModes = document.querySelectorAll('input[name="policy-schedule-mode"]');
+      const notificationsEnabled = document.getElementById('policy-notifications-enabled');
+      const notifyDriver = document.getElementById('notify-driver');
+      const notifyBackOffice = document.getElementById('notify-back-office');
+      const notificationDetails = document.getElementById('notification-details');
+      const backOfficeEmailField = document.getElementById('back-office-email-field');
+      const backOfficeEmails = document.getElementById('back-office-emails');
+      const includeLocationLink = document.getElementById('include-location-link');
+      const attachMapImage = document.getElementById('attach-map-image');
+      const notificationCooldown = document.getElementById('notification-cooldown');
+      const notificationWebhookUrl = document.getElementById('notification-webhook-url');
+      const notificationSummary = document.getElementById('notification-summary');
+
+      function validEmailList(value) {
+        const addresses = value.split(',').map(item => item.trim()).filter(Boolean);
+        return addresses.length > 0 && addresses.every(address => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address));
+      }
+
+      function getNotificationConfig() {
+        return {
+          enabled: notifyDriver.checked || notifyBackOffice.checked,
+          notifyAssignedDriver: notifyDriver.checked,
+          backOfficeEmails: notifyBackOffice.checked
+            ? backOfficeEmails.value.split(',').map(item => item.trim()).filter(Boolean)
+            : [],
+          includeLocationLink: includeLocationLink.checked,
+          attachMapImage: attachMapImage.checked,
+          cooldownMinutes: Number(notificationCooldown.value),
+          webhookUrl: notificationWebhookUrl.value.trim()
+        };
+      }
+
+      function formatTime(value) {
+        if (!value) return '';
+        const parts = value.split(':');
+        const hour = Number(parts[0]);
+        const minute = parts[1];
+        const suffix = hour >= 12 ? 'PM' : 'AM';
+        const displayHour = hour % 12 || 12;
+        return `${displayHour}:${minute} ${suffix}`;
+      }
+
+      function updateState() {
+        const selectedRule = document.querySelector('input[name="policy-rule-logic"]:checked');
+        const selectedSchedule = document.querySelector('input[name="policy-schedule-mode"]:checked');
+        trigger.value = selectedRule ? selectedRule.value : '';
+        schedule.value = selectedSchedule ? selectedSchedule.value : '';
+        const usesWindow = schedule.value === 'PermittedWindow' || schedule.value === 'RestrictedWindow';
+        const isRestricted = schedule.value === 'RestrictedWindow';
+        timeWindow.hidden = !usesWindow;
+        startTimeLabel.textContent = isRestricted ? 'Restricted from' : 'Permitted from';
+        endTimeLabel.textContent = isRestricted ? 'Restricted until' : 'Permitted until';
+
+        const wraps = usesWindow && startTime.value && endTime.value && endTime.value <= startTime.value;
+        crossesMidnight.value = wraps ? 'true' : 'false';
+        if (usesWindow && startTime.value && endTime.value) {
+          const action = isRestricted ? 'Vehicle use is prohibited in the selected zone' : 'Vehicle use is permitted';
+          timeSummary.textContent = `${action} from ${formatTime(startTime.value)} until ${formatTime(endTime.value)}${wraps ? ' the following day' : ''}.`;
+        }
+
+        const notifications = getNotificationConfig();
+        notificationsEnabled.value = String(notifications.enabled);
+        notificationDetails.hidden = !notifications.enabled;
+        backOfficeEmailField.hidden = !notifyBackOffice.checked;
+        const recipientsValid = !notifyBackOffice.checked || validEmailList(backOfficeEmails.value);
+        const deliveryValid = !notifications.enabled || Boolean(notifications.webhookUrl);
+        const recipientText = [
+          notifyDriver.checked ? 'assigned driver' : '',
+          notifyBackOffice.checked ? `${notifications.backOfficeEmails.length} back-office recipient${notifications.backOfficeEmails.length === 1 ? '' : 's'}` : ''
+        ].filter(Boolean).join(' and ');
+        notificationSummary.textContent = notifications.enabled
+          ? `Alert will be sent to ${recipientText || 'the selected recipients'}${attachMapImage.checked ? ' with a map image attached' : ''}${includeLocationLink.checked ? ' and a location link' : ''}.`
+          : 'Select at least one recipient.';
+
+        const validTime = !usesWindow || Boolean(startTime.value && endTime.value && startTime.value !== endTime.value);
+        create.disabled = !zone.value || !name.value.trim() || !trigger.value || !schedule.value || !validTime || !recipientsValid || !deliveryValid;
+      }
+
+      zone.addEventListener('change', updateState);
+      name.addEventListener('input', updateState);
+      rules.forEach(rule => rule.addEventListener('change', updateState));
+      scheduleModes.forEach(mode => mode.addEventListener('change', updateState));
+      startTime.addEventListener('change', updateState);
+      endTime.addEventListener('change', updateState);
+      notifyDriver.addEventListener('change', updateState);
+      notifyBackOffice.addEventListener('change', updateState);
+      backOfficeEmails.addEventListener('input', updateState);
+      includeLocationLink.addEventListener('change', updateState);
+      attachMapImage.addEventListener('change', updateState);
+      notificationCooldown.addEventListener('change', updateState);
+      notificationWebhookUrl.addEventListener('input', updateState);
+      create.addEventListener('click', function publishPolicyConfiguration() {
+        window.dispatchEvent(new CustomEvent('geofence-policy:create', {
+          detail: {
+            zoneId: zone.value,
+            policyName: name.value.trim(),
+            trigger: trigger.value,
+            schedule: {
+              mode: schedule.value,
+              startTime: startTime.value,
+              endTime: endTime.value,
+              crossesMidnight: crossesMidnight.value === 'true'
+            },
+            notifications: getNotificationConfig()
+          }
+        }));
+      });
+      updateState();
+    })();
+  </script>
+  <script src="geofence-monitor.js"></script>
+</body>
+</html>
