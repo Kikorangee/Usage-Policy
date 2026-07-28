@@ -1,0 +1,29 @@
+{
+  "server": {
+    "port": 8787,
+    "publicBaseUrl": "https://geofence-alerts.teslatool.org",
+    "pollSeconds": 60,
+    "allowedOrigins": []
+  },
+  "smtp": {
+    "host": "smtp.gmail.com",
+    "port": 465,
+    "secure": true,
+    "requireTLS": false,
+    "user": "francis@directt.co.nz",
+    "password": "gtxcctqkvculybfk",
+    "fromAddress": "francis@directt.co.nz",
+    "fromName": "Geofence Policy Monitor",
+    "replyTo": ""
+  },
+  "geotab": {
+    "server": "my.geotab.com",
+    "database": "hydrotech",
+    "userName": "francis@directt.co.nz",
+    "password": "@fr4nc1sWynn5"
+  },
+  "maptiler": {
+    "apiKey": "tRFm1dRJzQuFmpUWvq31",
+    "mapId": "streets-v4"
+  }
+}

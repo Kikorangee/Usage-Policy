@@ -1,0 +1,7 @@
+tunnel: 009b4149-0e33-4a1d-a14e-74f8d89e562d
+credentials-file: C:\Users\franc\.cloudflared\009b4149-0e33-4a1d-a14e-74f8d89e562d.json
+
+ingress:
+  - hostname: geofence-alerts.teslatool.org
+    service: http://127.0.0.1:8787
+  - service: http_status:404

@@ -1,0 +1,17 @@
+{
+  "name": "geofence-policy-notification-service",
+  "version": "2.9.1",
+  "private": true,
+  "description": "Server-side SMTP delivery for the MyGeotab Geofence Policy Monitor",
+  "main": "server.js",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "check-config": "node server.js --check-config"
+  },
+  "dependencies": {
+    "nodemailer": "^9.0.3"
+  }
+}
