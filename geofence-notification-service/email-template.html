@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Geofence alert</title>
+</head>
+<body style="margin:0;background:#f3f6fa;color:#172033;font-family:Arial,sans-serif">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f3f6fa;padding:24px">
+    <tr><td align="center">
+      <table role="presentation" width="640" cellspacing="0" cellpadding="0" style="max-width:640px;width:100%;background:#fff;border:1px solid #dfe4ec;border-radius:10px;overflow:hidden">
+        <tr><td style="background:#244fd7;color:#fff;padding:24px 28px">
+          <div style="font-size:12px;font-weight:bold;letter-spacing:.12em">MYGEOTAB GEOFENCE ALERT</div>
+          <h1 style="font-size:24px;line-height:1.25;margin:8px 0 0">{{policyName}}</h1>
+        </td></tr>
+        <tr><td style="padding:28px">
+          <p style="font-size:16px;line-height:1.55;margin:0 0 22px">A monitored vehicle triggered the policy shown below.</p>
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="8" style="border-collapse:collapse;font-size:14px">
+            <tr><td style="color:#657087;border-bottom:1px solid #e5e9f0;width:34%">Vehicle</td><td style="font-weight:bold;border-bottom:1px solid #e5e9f0">{{vehicleName}}</td></tr>
+            <tr><td style="color:#657087;border-bottom:1px solid #e5e9f0">Driver</td><td style="border-bottom:1px solid #e5e9f0">{{driverName}}</td></tr>
+            <tr><td style="color:#657087;border-bottom:1px solid #e5e9f0">Geofence</td><td style="border-bottom:1px solid #e5e9f0">{{zoneName}}</td></tr>
+            <tr><td style="color:#657087;border-bottom:1px solid #e5e9f0">Rule logic</td><td style="border-bottom:1px solid #e5e9f0">{{ruleLogic}}</td></tr>
+            <tr><td style="color:#657087;border-bottom:1px solid #e5e9f0">Event time</td><td style="border-bottom:1px solid #e5e9f0">{{eventTime}}</td></tr>
+            <tr><td style="color:#657087;border-bottom:1px solid #e5e9f0">Location</td><td style="border-bottom:1px solid #e5e9f0">{{address}}</td></tr>
+            <tr><td style="color:#657087">Coordinates</td><td>{{coordinates}}</td></tr>
+          </table>
+          {{mapImage}}
+          {{mapLink}}
+        </td></tr>
+        <tr><td style="padding:16px 28px;background:#f8fafc;color:#657087;font-size:12px">Sent by Geofence Policy Monitor from a Geotab exception event.</td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>
