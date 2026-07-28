@@ -1,0 +1,14 @@
+{
+  "name": "Geofence Policy Monitor",
+  "supportEmail": "francis@directt.co.nz",
+  "version": "2.9.1",
+  "items": [
+    {
+      "url": "geofence-monitor.html",
+      "path": "ActivityLink",
+      "menuName": {
+        "en": "Geofence Policy Monitor"
+      }
+    }
+  ]
+}
